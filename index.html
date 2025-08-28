@@ -403,11 +403,18 @@
                     headers: { 'Accept': 'application/json' }
                 }).then(response => {
                     if (response.ok) {
-                        sections.forEach(s => s.style.display = 'none');
+                        // Hide all form elements
                         document.querySelector('.relative.pt-1').style.display = 'none';
                         document.querySelector('.mt-10').style.display = 'none';
                         document.getElementById('privacy-notice').style.display = 'none';
-                        document.getElementById('thank-you').classList.add('active');
+                        
+                        // Hide all form sections
+                        sections.forEach(s => {
+                           s.style.display = 'none';
+                        });
+                        
+                        // And then show the thank you section
+                        document.getElementById('thank-you').style.display = 'block';
                     } else {
                         response.json().then(data => {
                             const errorMessage = data.errors ? data.errors.map(e => e.message).join(', ') : 'An unknown error occurred.';
