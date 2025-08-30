@@ -24,21 +24,6 @@
         .input-error {
             border-color: #ef4444; /* red-500 */
         }
-        /* Spinner for loading state */
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 4px solid #3498db;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            margin-left: 10px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body class="bg-gray-50 flex items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8">
@@ -174,16 +159,6 @@
                         <textarea id="target_audience" name="target_audience" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg transition" placeholder="Describe your ideal customer (age, interests, location...)" required></textarea>
                     </div>
                      <div>
-                        <button type="button" id="ai-suggestions-btn" class="w-full sm:w-auto bg-indigo-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-indigo-600 transition-colors flex items-center justify-center">
-                            <span>✨ Get AI Suggestions</span>
-                            <div id="ai-spinner" class="loader hidden"></div>
-                        </button>
-                    </div>
-                    <div id="ai-suggestions-wrapper" class="hidden">
-                        <label for="ai_suggestions" class="block text-sm font-medium text-gray-700 mb-1">AI-Generated Ideas</label>
-                        <textarea id="ai_suggestions" name="ai_suggestions" rows="5" class="w-full px-4 py-2 border border-gray-300 rounded-lg transition bg-gray-50" placeholder="AI suggestions will appear here..."></textarea>
-                    </div>
-                     <div>
                         <label for="competitors" class="block text-sm font-medium text-gray-700 mb-1">Please list any competitors. (Optional)</label>
                         <textarea id="competitors" name="competitors" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg transition" placeholder="e.g., competitor-a.com, competitor-b.com..."></textarea>
                     </div>
@@ -298,6 +273,8 @@
                 // Clear previous errors
                  if (errorDiv) errorDiv.classList.add('hidden');
                 inputs.forEach(input => input.classList.remove('input-error'));
+                radioGroups.forEach(group => group.classList.remove('input-error'));
+
 
                 inputs.forEach(input => {
                     if (!input.value.trim()) {
@@ -312,8 +289,6 @@
                     if (!checked) {
                         isValid = false;
                         group.classList.add('input-error');
-                    } else {
-                         group.classList.remove('input-error');
                     }
                 });
 
@@ -330,25 +305,25 @@
                 summaryDiv.innerHTML = ''; // Clear previous summary
                 const formData = new FormData(form);
                 
+                let summaryHtml = '';
+                const seenKeys = new Set();
+
                 for (let [key, value] of formData.entries()) {
-                    if (value && key !== 'ai_suggestions') { // Don't show empty fields or AI suggestions text in review
+                    if(seenKeys.has(key)) continue;
+
+                    if (value) {
+                        const label = key.replace(/_/g, ' ').replace(/(?:^|\s)\S/g, a => a.toUpperCase());
                          if (key.endsWith('[]')) {
-                            // Handle checkboxes
                             const groupName = key.replace('[]', '');
-                            if (!summaryDiv.querySelector(`[data-group="${groupName}"]`)) {
-                                const values = formData.getAll(key).join(', ');
-                                const p = document.createElement('p');
-                                p.innerHTML = `<strong class="font-semibold">${groupName.replace(/_/g, ' ').replace(/(?:^|\s)\S/g, a => a.toUpperCase())}:</strong> ${values}`;
-                                p.dataset.group = groupName;
-                                summaryDiv.appendChild(p);
-                            }
+                            const values = formData.getAll(key).join(', ');
+                            summaryHtml += `<p><strong class="font-semibold">${groupName.replace(/_/g, ' ').replace(/(?:^|\s)\S/g, a => a.toUpperCase())}:</strong> ${values}</p>`;
+                            seenKeys.add(key);
                         } else {
-                            const p = document.createElement('p');
-                            p.innerHTML = `<strong class="font-semibold">${key.replace(/_/g, ' ').replace(/(?:^|\s)\S/g, a => a.toUpperCase())}:</strong> ${value}`;
-                            summaryDiv.appendChild(p);
+                            summaryHtml += `<p><strong class="font-semibold">${label}:</strong> ${value}</p>`;
                         }
                     }
                 }
+                summaryDiv.innerHTML = summaryHtml;
             }
 
             nextBtn.addEventListener('click', () => {
@@ -385,57 +360,6 @@
                         socialTextarea.removeAttribute('required');
                     }
                 });
-            });
-
-            // Gemini API Integration
-            const aiBtn = document.getElementById('ai-suggestions-btn');
-            const aiSpinner = document.getElementById('ai-spinner');
-            const aiSuggestionsWrapper = document.getElementById('ai-suggestions-wrapper');
-            const aiSuggestionsTextarea = document.getElementById('ai_suggestions');
-
-            aiBtn.addEventListener('click', async () => {
-                const primaryGoal = document.getElementById('primary_goal').value;
-                const targetAudience = document.getElementById('target_audience').value;
-
-                if (!primaryGoal || !targetAudience) {
-                    alert('Please describe your primary goal and target audience first.');
-                    return;
-                }
-                
-                aiBtn.disabled = true;
-                aiSpinner.classList.remove('hidden');
-
-                const userPrompt = `Based on a business goal of "${primaryGoal}" and a target audience of "${targetAudience}", generate a list of 3-5 concise and actionable project ideas or marketing strategies. Format the response as a bulleted list.`;
-                const apiKey = ""; // API Key is handled by the environment
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
-                try {
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: userPrompt }] }]
-                        })
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('API response was not ok.');
-                    }
-
-                    const result = await response.json();
-                    const suggestions = result.candidates[0].content.parts[0].text;
-                    
-                    aiSuggestionsTextarea.value = suggestions;
-                    aiSuggestionsWrapper.classList.remove('hidden');
-
-                } catch (error) {
-                    console.error('Error fetching AI suggestions:', error);
-                    aiSuggestionsTextarea.value = "Sorry, we couldn't generate suggestions at this time. Please try again later.";
-                    aiSuggestionsWrapper.classList.remove('hidden');
-                } finally {
-                    aiBtn.disabled = false;
-                    aiSpinner.classList.add('hidden');
-                }
             });
             
             form.addEventListener('submit', (e) => {
