@@ -23,7 +23,21 @@
         }
         .input-error {
             border-color: #ef4444; /* red-500 */
-            box-shadow: 0 0 0 2px #ef4444;
+        }
+        /* Spinner for loading state */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #3498db;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -37,7 +51,7 @@
         </div>
 
         <!-- Progress Bar -->
-        <div class="mb-8">
+        <div id="progress-container" class="mb-8">
             <div class="relative pt-1">
                 <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-blue-200">
                     <div id="progress-bar" style="width: 20%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500 transition-all duration-500"></div>
@@ -116,6 +130,7 @@
                             <label class="flex items-center"><input type="checkbox" name="services[]" value="Custom Prompt Library Development" class="mr-3 rounded"> Custom Prompt Library Development</label>
                             <label class="flex items-center"><input type="checkbox" name="services[]" value="Curated AI Tool Stacks" class="mr-3 rounded"> Curated AI Tool Stacks</label>
                             <label class="flex items-center"><input type="checkbox" name="services[]" value="AI Strategy Consulting" class="mr-3 rounded"> AI Strategy Consulting</label>
+                             <label class="flex items-center"><input type="checkbox" name="services[]" value="AI Brand Photoshoot" class="mr-3 rounded"> AI Brand Photoshoot</label>
                         </div>
 
                         <div class="space-y-3 p-4 border rounded-lg">
@@ -159,6 +174,16 @@
                         <textarea id="target_audience" name="target_audience" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg transition" placeholder="Describe your ideal customer (age, interests, location...)" required></textarea>
                     </div>
                      <div>
+                        <button type="button" id="ai-suggestions-btn" class="w-full sm:w-auto bg-indigo-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-indigo-600 transition-colors flex items-center justify-center">
+                            <span>✨ Get AI Suggestions</span>
+                            <div id="ai-spinner" class="loader hidden"></div>
+                        </button>
+                    </div>
+                    <div id="ai-suggestions-wrapper" class="hidden">
+                        <label for="ai_suggestions" class="block text-sm font-medium text-gray-700 mb-1">AI-Generated Ideas</label>
+                        <textarea id="ai_suggestions" name="ai_suggestions" rows="5" class="w-full px-4 py-2 border border-gray-300 rounded-lg transition bg-gray-50" placeholder="AI suggestions will appear here..."></textarea>
+                    </div>
+                     <div>
                         <label for="competitors" class="block text-sm font-medium text-gray-700 mb-1">Please list any competitors. (Optional)</label>
                         <textarea id="competitors" name="competitors" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg transition" placeholder="e.g., competitor-a.com, competitor-b.com..."></textarea>
                     </div>
@@ -188,51 +213,41 @@
                             <label class="flex items-center p-3 border rounded-lg hover:bg-gray-100 cursor-pointer"><input type="radio" name="budget" value="$1,500 - $3,000" class="mr-3"> $1,500 - $3,000</label>
                             <label class="flex items-center p-3 border rounded-lg hover:bg-gray-100 cursor-pointer"><input type="radio" name="budget" value="$3,000 - $5,000" class="mr-3"> $3,000 - $5,000</label>
                             <label class="flex items-center p-3 border rounded-lg hover:bg-gray-100 cursor-pointer"><input type="radio" name="budget" value="$5,000+" class="mr-3"> $5,000+</label>
-                            <label class="flex items-center p-3 border rounded-lg hover:bg-gray-100 cursor-pointer sm:col-span-2"><input type="radio" name="budget" value="Not sure / Need a quote" class="mr-3"> I'm not sure / I need a quote</label>
+                            <label class="flex items-center p-3 border rounded-lg hover:bg-gray-100 cursor-pointer"><input type="radio" name="budget" value="I need a quote" class="mr-3"> I need a quote</label>
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Desired Start Date (Optional)</label>
-                            <input type="date" id="start_date" name="start_date" class="w-full px-4 py-2 border border-gray-300 rounded-lg transition">
+                           <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Desired Start Date (Optional)</label>
+                           <input type="date" id="start_date" name="start_date" class="w-full px-4 py-2 border border-gray-300 rounded-lg transition">
                         </div>
                         <div>
-                            <label for="deadline" class="block text-sm font-medium text-gray-700 mb-1">Desired Deadline (Optional)</label>
-                            <input type="date" id="deadline" name="deadline" class="w-full px-4 py-2 border border-gray-300 rounded-lg transition">
+                           <label for="deadline" class="block text-sm font-medium text-gray-700 mb-1">Desired Deadline (Optional)</label>
+                           <input type="date" id="deadline" name="deadline" class="w-full px-4 py-2 border border-gray-300 rounded-lg transition">
                         </div>
-                    </div>
-                     <div>
-                        <label for="final_comments" class="block text-sm font-medium text-gray-700 mb-1">Anything else we should know?</label>
-                        <textarea id="final_comments" name="final_comments" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg transition" placeholder="e.g., specific features, brand voice..." required></textarea>
                     </div>
                 </div>
-                <div id="error-4" class="text-red-500 text-sm mt-4 hidden"></div>
+                 <div id="error-4" class="text-red-500 text-sm mt-4 hidden"></div>
             </div>
 
-            <!-- SECTION 5: Review -->
+             <!-- SECTION 5: Review -->
             <div id="section-5" class="form-section">
-                <h2 class="text-2xl font-semibold text-gray-700 mb-6 border-b pb-3">Step 5: Review Your Inquiry</h2>
-                <p class="text-gray-600 mb-6">Please review your answers below. If everything looks correct, please submit your inquiry.</p>
-                <div id="review-content" class="space-y-4 text-sm">
-                    <!-- Summary will be dynamically inserted here by JavaScript -->
+                <h2 class="text-2xl font-semibold text-gray-700 mb-6 border-b pb-3">Step 5: Review Your Answers</h2>
+                <div id="review-summary" class="space-y-4 text-gray-700">
+                    <!-- Summary will be injected here by JavaScript -->
                 </div>
             </div>
             
-            <!-- Thank You Message -->
+            <!-- Thank You Message (Appears after submission) -->
             <div id="thank-you" class="form-section text-center py-10">
-                <img src="https://i.imgur.com/q8W5uKg.png" alt="Scanista AI Logo" class="mx-auto mb-6 h-20">
                 <h2 class="text-3xl font-bold text-gray-800">Thank You!</h2>
                 <p class="text-gray-600 mt-2">Your inquiry has been received. We'll be in touch within 1-2 business days.</p>
-                <p class="text-gray-500 text-sm mt-4">If you need to reach out sooner, please email us at <a href="mailto:services@scanistaqr.com" class="text-blue-500 hover:underline">services@scanistaqr.com</a>.</p>
+                <p class="text-gray-500 mt-4 text-sm">If you need to reach out sooner, please email us at <a href="mailto:services@scanistaqr.com" class="text-blue-500 hover:underline">services@scanistaqr.com</a>.</p>
             </div>
 
-            <!-- Privacy Notice -->
-            <div id="privacy-notice" class="mt-8 text-center text-xs text-gray-500 hidden">
-                <p>We respect your privacy. The information you provide will be used solely to respond to your inquiry.</p>
-            </div>
 
             <!-- Navigation Buttons -->
-            <div class="mt-10 flex justify-between items-center">
+            <div id="nav-buttons" class="mt-10 flex justify-between items-center">
                 <button type="button" id="back-btn" class="bg-gray-200 text-gray-700 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>Back</button>
                 <button type="button" id="next-btn" class="bg-blue-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-blue-600 transition-colors">Next</button>
                 <button type="submit" id="submit-btn" class="bg-green-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-600 transition-colors hidden">Submit Inquiry</button>
@@ -244,159 +259,187 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('questionnaire-form');
-            const sections = document.querySelectorAll('.form-section');
+            const sections = Array.from(document.querySelectorAll('.form-section'));
             const nextBtn = document.getElementById('next-btn');
             const backBtn = document.getElementById('back-btn');
             const submitBtn = document.getElementById('submit-btn');
             const progressBar = document.getElementById('progress-bar');
-            const socialMediaRadios = document.querySelectorAll('input[name="has_social_media"]');
-            const existingSocialWrapper = document.getElementById('existing_social_media_wrapper');
+            
+            let currentSectionIndex = 0;
+            const thankYouSection = document.getElementById('thank-you');
+            const totalFormSections = sections.indexOf(thankYouSection);
 
-            let currentSection = 1;
-            const totalRealSections = 5; // Total steps including review
+            function updateUI() {
+                const isReviewStep = currentSectionIndex === totalFormSections - 1;
 
-            // --- Conditional Logic for Social Media ---
-            socialMediaRadios.forEach(radio => {
-                radio.addEventListener('change', function() {
-                    if (this.value === 'Yes') {
-                        existingSocialWrapper.classList.remove('hidden');
-                    } else {
-                        existingSocialWrapper.classList.add('hidden');
-                    }
+                // Update progress bar
+                const progress = ((currentSectionIndex + 1) / totalFormSections) * 100;
+                progressBar.style.width = `${progress}%`;
+
+                // Show the current section
+                sections.forEach((section, index) => {
+                    section.classList.toggle('active', index === currentSectionIndex);
                 });
-            });
 
-            function getLabelText(key) {
-                const labels = {
-                    'full_name': 'Full Name', 'email': 'Email Address', 'business_name': 'Business Name',
-                    'phone_number': 'Business Phone', 'website_url': 'Current Website', 'how_did_you_hear': 'Heard From',
-                    'services[]': 'Services Needed', 'primary_goal': 'Primary Goal', 'target_audience': 'Target Audience',
-                    'competitors': 'Competitors', 'has_social_media': 'Has Social Media?', 'existing_social_media': 'Existing Social Media',
-                    'budget': 'Estimated Budget', 'start_date': 'Desired Start Date', 'deadline': 'Desired Deadline', 'final_comments': 'Additional Comments',
-                    'best_time_to_reach': 'Best Time to Reach', 'in_person_appointment': 'Schedule In-Person Appointment?'
-                };
-                return labels[key] || key;
-            }
-
-            function populateReviewSection() {
-                const reviewContent = document.getElementById('review-content');
-                reviewContent.innerHTML = '';
-                const formData = new FormData(form);
-                const summary = {};
-
-                for (const [key, value] of formData.entries()) {
-                    if (!value) continue;
-                    if (key.endsWith('[]')) {
-                        const cleanKey = key;
-                        if (!summary[cleanKey]) summary[cleanKey] = [];
-                        summary[cleanKey].push(value);
-                    } else {
-                        summary[key] = value;
-                    }
-                }
-
-                for (const key in summary) {
-                    const value = Array.isArray(summary[key]) ? summary[key].join(', ') : summary[key];
-                    const labelText = getLabelText(key);
-                    const reviewItem = document.createElement('div');
-                    reviewItem.className = 'p-3 bg-gray-50 rounded-lg';
-                    reviewItem.innerHTML = `<strong class="font-medium text-gray-800 block">${labelText}</strong><p class="text-gray-600">${value}</p>`;
-                    reviewContent.appendChild(reviewItem);
-                }
-            }
-
-            function showError(sectionIndex, message) {
-                const errorDiv = document.getElementById(`error-${sectionIndex}`);
-                if (errorDiv) {
-                    errorDiv.textContent = message;
-                    errorDiv.classList.remove('hidden');
-                }
-            }
-
-            function clearError(sectionIndex) {
-                const errorDiv = document.getElementById(`error-${sectionIndex}`);
-                if (errorDiv) {
-                    errorDiv.textContent = '';
-                    errorDiv.classList.add('hidden');
-                }
+                // Update button states
+                backBtn.disabled = currentSectionIndex === 0;
+                
+                nextBtn.classList.toggle('hidden', isReviewStep);
+                submitBtn.classList.toggle('hidden', !isReviewStep);
             }
             
-            function validateSection(sectionIndex) {
-                clearError(sectionIndex);
-                const section = document.getElementById(`section-${sectionIndex}`);
+            function validateSection(index) {
+                const section = sections[index];
+                const inputs = section.querySelectorAll('[required]');
+                const radioGroups = section.querySelectorAll('[data-required-group]');
+                const errorDiv = document.getElementById(`error-${index + 1}`);
                 let isValid = true;
 
-                const requiredFields = section.querySelectorAll('input[required], textarea[required]');
-                requiredFields.forEach(field => {
-                    if (!field.value.trim()) {
+                // Clear previous errors
+                 if (errorDiv) errorDiv.classList.add('hidden');
+                inputs.forEach(input => input.classList.remove('input-error'));
+
+                inputs.forEach(input => {
+                    if (!input.value.trim()) {
                         isValid = false;
-                        field.classList.add('input-error');
-                    } else {
-                        field.classList.remove('input-error');
+                        input.classList.add('input-error');
                     }
                 });
 
-                const requiredGroups = section.querySelectorAll('[data-required-group]');
-                requiredGroups.forEach(group => {
+                radioGroups.forEach(group => {
                     const groupName = group.dataset.requiredGroup;
-                    const checked = section.querySelector(`input[name="${groupName}"]:checked`);
-                    if (!checked) isValid = false;
+                    const checked = group.querySelector(`input[name="${groupName}"]:checked`);
+                    if (!checked) {
+                        isValid = false;
+                        group.classList.add('input-error');
+                    } else {
+                         group.classList.remove('input-error');
+                    }
                 });
 
-                if (!isValid) {
-                    showError(sectionIndex, 'Please fill out all required fields.');
-                    return false;
+                if (!isValid && errorDiv) {
+                    errorDiv.textContent = 'Please fill out all required fields.';
+                    errorDiv.classList.remove('hidden');
                 }
-
-                if (sectionIndex === 3) {
-                    const hasSocialMedia = section.querySelector('input[name="has_social_media"]:checked');
-                    const existingSocialMedia = section.querySelector('#existing_social_media');
-                    if (hasSocialMedia && hasSocialMedia.value === 'Yes' && !existingSocialMedia.value.trim()) {
-                        isValid = false;
-                        existingSocialMedia.classList.add('input-error');
-                        showError(sectionIndex, 'Please provide your existing social media handles.');
-                    } else {
-                        existingSocialMedia.classList.remove('input-error');
-                    }
-                }
-
+                
                 return isValid;
             }
 
-            function updateUI() {
-                const progress = (currentSection / totalRealSections) * 100;
-                progressBar.style.width = `${progress}%`;
-
-                sections.forEach((section) => section.classList.remove('active'));
-                document.getElementById(`section-${currentSection}`).classList.add('active');
-
-                backBtn.disabled = currentSection === 1;
-                const isReviewSection = currentSection === totalRealSections;
-                nextBtn.classList.toggle('hidden', isReviewSection);
-                submitBtn.classList.toggle('hidden', !isReviewSection);
-                document.getElementById('privacy-notice').classList.toggle('hidden', !isReviewSection);
+            function generateReview() {
+                const summaryDiv = document.getElementById('review-summary');
+                summaryDiv.innerHTML = ''; // Clear previous summary
+                const formData = new FormData(form);
+                
+                for (let [key, value] of formData.entries()) {
+                    if (value && key !== 'ai_suggestions') { // Don't show empty fields or AI suggestions text in review
+                         if (key.endsWith('[]')) {
+                            // Handle checkboxes
+                            const groupName = key.replace('[]', '');
+                            if (!summaryDiv.querySelector(`[data-group="${groupName}"]`)) {
+                                const values = formData.getAll(key).join(', ');
+                                const p = document.createElement('p');
+                                p.innerHTML = `<strong class="font-semibold">${groupName.replace(/_/g, ' ').replace(/(?:^|\s)\S/g, a => a.toUpperCase())}:</strong> ${values}`;
+                                p.dataset.group = groupName;
+                                summaryDiv.appendChild(p);
+                            }
+                        } else {
+                            const p = document.createElement('p');
+                            p.innerHTML = `<strong class="font-semibold">${key.replace(/_/g, ' ').replace(/(?:^|\s)\S/g, a => a.toUpperCase())}:</strong> ${value}`;
+                            summaryDiv.appendChild(p);
+                        }
+                    }
+                }
             }
 
             nextBtn.addEventListener('click', () => {
-                if (validateSection(currentSection) && currentSection < totalRealSections) {
-                    currentSection++;
-                    if (currentSection === totalRealSections) {
-                        populateReviewSection();
+                if (validateSection(currentSectionIndex)) {
+                     if (currentSectionIndex < totalFormSections - 1) {
+                        currentSectionIndex++;
+                        if(currentSectionIndex === totalFormSections - 1) {
+                            generateReview();
+                        }
+                        updateUI();
                     }
-                    updateUI();
                 }
             });
 
             backBtn.addEventListener('click', () => {
-                if (currentSection > 1) {
-                    currentSection--;
+                if (currentSectionIndex > 0) {
+                    currentSectionIndex--;
                     updateUI();
+                }
+            });
+
+            // Conditional logic for social media fields
+            const socialRadio = document.querySelectorAll('input[name="has_social_media"]');
+            const socialWrapper = document.getElementById('existing_social_media_wrapper');
+            const socialTextarea = document.getElementById('existing_social_media');
+
+            socialRadio.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    if (e.target.value === 'Yes') {
+                        socialWrapper.classList.remove('hidden');
+                        socialTextarea.setAttribute('required', 'true');
+                    } else {
+                        socialWrapper.classList.add('hidden');
+                        socialTextarea.removeAttribute('required');
+                    }
+                });
+            });
+
+            // Gemini API Integration
+            const aiBtn = document.getElementById('ai-suggestions-btn');
+            const aiSpinner = document.getElementById('ai-spinner');
+            const aiSuggestionsWrapper = document.getElementById('ai-suggestions-wrapper');
+            const aiSuggestionsTextarea = document.getElementById('ai_suggestions');
+
+            aiBtn.addEventListener('click', async () => {
+                const primaryGoal = document.getElementById('primary_goal').value;
+                const targetAudience = document.getElementById('target_audience').value;
+
+                if (!primaryGoal || !targetAudience) {
+                    alert('Please describe your primary goal and target audience first.');
+                    return;
+                }
+                
+                aiBtn.disabled = true;
+                aiSpinner.classList.remove('hidden');
+
+                const userPrompt = `Based on a business goal of "${primaryGoal}" and a target audience of "${targetAudience}", generate a list of 3-5 concise and actionable project ideas or marketing strategies. Format the response as a bulleted list.`;
+                const apiKey = ""; // API Key is handled by the environment
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: userPrompt }] }]
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('API response was not ok.');
+                    }
+
+                    const result = await response.json();
+                    const suggestions = result.candidates[0].content.parts[0].text;
+                    
+                    aiSuggestionsTextarea.value = suggestions;
+                    aiSuggestionsWrapper.classList.remove('hidden');
+
+                } catch (error) {
+                    console.error('Error fetching AI suggestions:', error);
+                    aiSuggestionsTextarea.value = "Sorry, we couldn't generate suggestions at this time. Please try again later.";
+                    aiSuggestionsWrapper.classList.remove('hidden');
+                } finally {
+                    aiBtn.disabled = false;
+                    aiSpinner.classList.add('hidden');
                 }
             });
             
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
-                if (!validateSection(currentSection)) return;
                 
                 const formData = new FormData(form);
                 fetch(form.action, {
@@ -405,26 +448,18 @@
                     headers: { 'Accept': 'application/json' }
                 }).then(response => {
                     if (response.ok) {
-                        // Hide all form elements
-                        document.querySelector('.relative.pt-1').style.display = 'none';
-                        document.querySelector('.mt-10').style.display = 'none';
-                        document.getElementById('privacy-notice').style.display = 'none';
-                        
-                        // Hide all form sections
-                        sections.forEach(s => {
-                           s.style.display = 'none';
-                        });
-                        
-                        // And then show the thank you section
-                        document.getElementById('thank-you').style.display = 'block';
+                       document.getElementById('progress-container').style.display = 'none';
+                       document.getElementById('nav-buttons').style.display = 'none';
+                       sections.forEach(s => s.classList.remove('active'));
+                       thankYouSection.classList.add('active');
                     } else {
-                        response.json().then(data => {
-                            const errorMessage = data.errors ? data.errors.map(e => e.message).join(', ') : 'An unknown error occurred.';
-                            alert(`Oops! There was a problem: ${errorMessage}`);
+                         response.json().then(data => {
+                            const errorMessage = data.errors ? data.errors.map(err => err.message).join(', ') : 'An unknown error occurred.';
+                            alert(`Oops! There was a problem submitting your form: ${errorMessage}`);
                         });
                     }
                 }).catch(error => {
-                    alert('Oops! There was a network error submitting your form.');
+                    alert('Oops! There was a network error. Please check your connection and try again.');
                 });
             });
 
@@ -434,3 +469,4 @@
     </script>
 </body>
 </html>
+
