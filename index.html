@@ -6,8 +6,6 @@
     <title>Scanista AI Project Inquiry</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Correct Google ReCaptcha Enterprise Script -->
-    <script src="https://www.google.com/recaptcha/enterprise.js?render=6LfBangrAAAAACJHhDHxhuYxEGIRyvX240XTAC8J3C"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -371,41 +369,28 @@
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Submitting...';
 
-                grecaptcha.enterprise.ready(async () => {
-                    try {
-                        const token = await grecaptcha.enterprise.execute('6LfBangrAAAAACJHhDHxhuYxEGIRyvX240XTAC8J3C', {action: 'submit'});
-                        
-                        const formData = new FormData(form);
-                        const hiddenInput = document.createElement('input');
-                        hiddenInput.type = 'hidden';
-                        hiddenInput.name = 'g-recaptcha-response';
-                        hiddenInput.value = token;
-                        form.appendChild(hiddenInput);
-
-                        const response = await fetch(form.action, {
-                            method: 'POST',
-                            body: new FormData(form),
-                            headers: { 'Accept': 'application/json' }
+                fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: { 'Accept': 'application/json' }
+                }).then(response => {
+                    if (response.ok) {
+                       document.getElementById('progress-container').style.display = 'none';
+                       document.getElementById('nav-buttons').style.display = 'none';
+                       sections.forEach(s => s.classList.remove('active'));
+                       thankYouSection.classList.add('active');
+                    } else {
+                         response.json().then(data => {
+                            const errorMessage = data.errors ? data.errors.map(err => err.message).join(', ') : 'An unknown error occurred.';
+                            alert(`Oops! There was a problem submitting your form: ${errorMessage}`);
                         });
-
-                        if (response.ok) {
-                           document.getElementById('progress-container').style.display = 'none';
-                           document.getElementById('nav-buttons').style.display = 'none';
-                           sections.forEach(s => s.classList.remove('active'));
-                           thankYouSection.classList.add('active');
-                        } else {
-                             const data = await response.json();
-                             const errorMessage = data.errors ? data.errors.map(err => err.message).join(', ') : 'An unknown error occurred.';
-                             alert(`Oops! There was a problem submitting your form: ${errorMessage}`);
-                             submitBtn.disabled = false;
-                             submitBtn.textContent = 'Submit Inquiry';
-                        }
-                    } catch (error) {
-                        console.error('ReCaptcha or fetch error:', error);
-                        alert('Could not verify you are human or there was a network error. Please try again.');
                         submitBtn.disabled = false;
                         submitBtn.textContent = 'Submit Inquiry';
                     }
+                }).catch(error => {
+                    alert('Oops! There was a network error. Please check your connection and try again.');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Inquiry';
                 });
             });
 
